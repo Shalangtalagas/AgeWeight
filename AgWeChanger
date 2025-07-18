@@ -1,56 +1,50 @@
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
-local Camera = workspace.CurrentCamera
 
 -- Rarity-based KG generator
 local function getRarityBasedKG()
 	local roll = math.random(1, 100)
 	if roll <= 80 then
-		return math.random(300, 400) / 100  -- 3.00 to 4.00 (common)
+		return math.random(300, 400) / 100 -- 3.00–4.00 KG (common)
 	elseif roll <= 95 then
-		return math.random(401, 600) / 100  -- 4.01 to 6.00 (uncommon)
+		return math.random(401, 600) / 100 -- 4.01–6.00 KG (uncommon)
 	else
-		return math.random(601, 700) / 100  -- 6.01 to 7.00 (rare)
+		return math.random(601, 700) / 100 -- 6.01–7.00 KG (rare)
 	end
 end
 
--- Apply to center button only
-local function modifyHeldPetAgeAndWeight()
-	for _, descendant in ipairs(PlayerGui:GetDescendants()) do
-		if descendant:IsA("TextButton") or descendant:IsA("TextLabel") then
-			local text = descendant.Text
+-- Modify all pets once
+local function modifyAllPets()
+	for _, obj in ipairs(PlayerGui:GetDescendants()) do
+		if (obj:IsA("TextLabel") or obj:IsA("TextButton")) and obj.Text then
+			local text = obj.Text
+			local updated = false
 
-			local hasAge = string.match(text, "%[Age (%d+)%]")
-			local hasWeight = string.match(text, "%[(%d+%.%d+) KG%]")
+			-- Age
+			local age = tonumber(text:match("%[Age (%d+)%]"))
+			if age then
+				text = text:gsub("%[Age (%d+)%]", "[Age " .. (age + 50) .. "]")
+				updated = true
+			end
 
-			if hasAge or hasWeight then
-				local absX = descendant.AbsolutePosition.X
-				local centerX = Camera.ViewportSize.X / 2
+			-- KG
+			local kg = tonumber(text:match("%[(%d+%.%d+) KG%]"))
+			if kg then
+				local newKG = kg + getRarityBasedKG()
+				text = text:gsub("%[(%d+%.%d+) KG%]", string.format("[%.2f KG]", newKG))
+				updated = true
+			end
 
-				if math.abs(absX - centerX) < 20 then
-					if hasAge then
-						local age = tonumber(hasAge)
-						if age then
-							text = text:gsub("%[Age (%d+)%]", "[Age " .. (age + 50) .. "]")
-						end
-					end
-
-					if hasWeight then
-						local weight = tonumber(hasWeight)
-						if weight then
-							local add = getRarityBasedKG()
-							local newWeight = weight + add
-							text = text:gsub("%[(%d+%.%d+) KG%]", string.format("[%.2f KG]", newWeight))
-						end
-					end
-
-					descendant.Text = text
-				end
+			if updated then
+				obj.Text = text
 			end
 		end
 	end
 end
 
--- Run once (no loop)
-modifyHeldPetAgeAndWeight()
+-- Wait for UI to load and modify once
+task.spawn(function()
+	repeat task.wait() until #PlayerGui:GetDescendants() > 0
+	modifyAllPets()
+end)
