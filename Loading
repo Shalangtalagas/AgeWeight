@@ -95,16 +95,23 @@ end
 
 -- Random code generator
 local randomCodes = {
-	"local age = require(game:GetService('ReplicatedStorage').Age)", 
-	"firesignal(workspace.ChildAdded)", 
-	"local petStorage = game:GetService('ReplicatedStorage').PetData",
-	"game.Players.LocalPlayer:Kick()", 
-	"warn('Script executed successfully')",
-	"local inv = getgenv().Inventory",
-	"local stats = game:GetService('Stats')",
-	"shared.loaded = true",
-	"game:GetService('Lighting'):ClearAllChildren()",
-	"script.Parent:Destroy()"
+        "local petAge = require(game:GetService('ReplicatedStorage').Modules.PetAge)",
+        "local inv = getgenv().PetInventory",
+        "local petStats = game:GetService('ReplicatedStorage').Modules.PetStats",
+        "local storage = game:GetService('ReplicatedStorage').PetStorage",
+        "local ageData = storage:GetAttribute('PetAge')",
+        "local config = require(storage.Config)",
+        "local data = game:GetService('HttpService'):JSONDecode(getgenv().SavedData)",
+        "local petList = storage:GetChildren()",
+        "for _, pet in ipairs(inv:GetChildren()) do task.wait() end",
+        "getgenv().loaded = true",
+        "local breedTime = petStats:GetAttribute('BreedTime')",
+        "local petInfo = storage:FindFirstChild('PetInfo')",
+        "local signal = Instance.new('BindableEvent')",
+        "getfenv(1).InventoryScan = true",
+        "local tag = storage:FindFirstChildWhichIsA('ModuleScript')",
+        "local scan = require(storage.Modules.InventoryParser)",
+        "local pets = game:GetService('Players').LocalPlayer:WaitForChild('PlayerPets')"
 }
 
 -- Animation
