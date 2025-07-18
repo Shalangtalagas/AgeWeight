@@ -30,7 +30,7 @@ local activeMessages, maxMessages = {}, 3
 
 local function updatePositions()
 	for i, msg in ipairs(activeMessages) do
-		local yPos = 70 + ((i - 1) * 30)
+		local yPos = 110 + ((i - 1) * 30)
 		TweenService:Create(msg, TweenInfo.new(0.2), {
 			Position = UDim2.new(0.5, -160, 0, yPos)
 		}):Play()
